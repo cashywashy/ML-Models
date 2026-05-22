@@ -13,8 +13,9 @@ def L2Linear(X:np.ndarray, y:np.ndarray, r=0):
     "Anyways screw you I'm terminating your program")
   params = np.concat([np.ones([n,1]), X], axis=1)
   w = np.linalg.inv(params.T @ params + r*np.eye(d+1)) @ params.T @ y
-  w0 = w[0,:]
-  return w0, w[1:,:]
+
+  w0 = w[0]
+  return w0, w[1:]
 
 # X is matrix of input parameters
 # y is corresponding label vector
@@ -28,7 +29,10 @@ def L2LinearButKernel(X:np.ndarray, y:np.ndarray, r=0):
   def L2loss(u):
     a = u[:-1][:,None]
     w0 = u[-1]
-    return np.logaddexp(0.5*((((K @ a) + w0) - y).T @ (((K @ a) + w0) - y)), 0.5*r*(a.T @ K @ a))[0][0]
+
+
+    L = ((K @ a) + w0).T - y
+    return (L @ L.T) + 0.5*r*(a.T @ K @ a)
   
   w = np.zeros(n+1)
   sol = minimize(L2loss, w)
@@ -36,5 +40,21 @@ def L2LinearButKernel(X:np.ndarray, y:np.ndarray, r=0):
   a = sol['x'][:-1]
   w0 = sol['x'][-1]
 
-  return a, w0
+  return w0, X.T@a
 
+# If I were introduced to a new thing with the only provided information being that I needed two nparrays, I'd be quite lost.
+# So I made this to show the shape of the input and such.
+def DemoFunc():
+  print("and so we shall now have a demo of the above code.")
+  X = np.array([[0,1,2,3,4,5,0],[0,1,2,3,4,5,6]]).T
+  y = np.array([0,2,4,6,8,10,6])
+
+  print(f"first we make list of data points and set it to:\n{X}\nAnd then we add the corresponding label values as {y}\n")
+
+  print("first we try using the linear kernel:")
+  print(L2Linear(X,y))
+
+  print("and now we use the Kernel version:")
+  print(L2LinearButKernel(X,y))
+
+DemoFunc()
